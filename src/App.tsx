@@ -129,14 +129,18 @@ export default function App() {
   const handleGrouping = () => {
     if (names.length === 0) return;
 
-    const shuffled = [...names].sort(() => Math.random() - 0.5);
-    const result: string[][] = [];
+    setGroups([]); // Clear first to trigger re-animation
     
-    for (let i = 0; i < shuffled.length; i += groupSize) {
-      result.push(shuffled.slice(i, i + groupSize));
-    }
-    
-    setGroups(result);
+    setTimeout(() => {
+      const shuffled = [...names].sort(() => Math.random() - 0.5);
+      const result: string[][] = [];
+      
+      for (let i = 0; i < shuffled.length; i += groupSize) {
+        result.push(shuffled.slice(i, i + groupSize));
+      }
+      
+      setGroups(result);
+    }, 50);
   };
 
   const resetDraw = () => {
@@ -420,60 +424,107 @@ export default function App() {
                   </div>
 
                   {/* Group Results */}
-                  {groups.length > 0 ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between px-2">
-                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                          <UserCheck className="w-4 h-4" />
-                          分組結果
-                        </h3>
-                        <button
-                          onClick={exportToCSV}
-                          className="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl transition-colors"
-                        >
-                          <Download className="w-4 h-4" />
-                          下載 CSV
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {groups.map((group, idx) => (
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            key={idx}
-                            className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
-                          >
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                <span className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs">
-                                  {idx + 1}
-                                </span>
-                                第 {idx + 1} 組
-                              </h3>
-                              <span className="text-xs text-slate-400 font-medium">{group.length} 人</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {group.map((member, mIdx) => (
-                                <span 
-                                  key={mIdx}
-                                  className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-medium flex items-center gap-1.5"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5 opacity-50" />
-                                  {member}
-                                </span>
-                              ))}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-                      <Users className="w-16 h-16 mb-4 opacity-20" />
-                      <p>設定人數並點擊開始分組</p>
-                    </div>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {groups.length > 0 ? (
+                      <motion.div 
+                        key="group-results"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="space-y-6"
+                      >
+                        <div className="flex items-center justify-between px-2">
+                          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <UserCheck className="w-4 h-4" />
+                            分組結果
+                          </h3>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setGroups([])}
+                              className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-xl transition-colors"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                              清除
+                            </button>
+                            <button
+                              onClick={exportToCSV}
+                              className="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-xl transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              下載 CSV
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* The Board */}
+                        <div className="bg-slate-50/50 rounded-[2.5rem] p-6 border border-slate-100/50 min-h-[300px] relative overflow-hidden">
+                          {/* Decorative background pattern */}
+                          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+                            {groups.map((group, idx) => (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ 
+                                  type: "spring",
+                                  stiffness: 260,
+                                  damping: 20,
+                                  delay: idx * 0.1 
+                                }}
+                                key={idx}
+                                className="group bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                              >
+                                <div className="flex items-center justify-between mb-5">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold shadow-lg shadow-indigo-100 group-hover:rotate-6 transition-transform">
+                                      {idx + 1}
+                                    </div>
+                                    <div>
+                                      <h3 className="font-bold text-slate-800">第 {idx + 1} 組</h3>
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Team {idx + 1}</p>
+                                    </div>
+                                  </div>
+                                  <div className="px-3 py-1 bg-slate-50 rounded-full text-[10px] font-bold text-slate-400 border border-slate-100">
+                                    {group.length} MEMBERS
+                                  </div>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                  {group.map((member, mIdx) => (
+                                    <motion.span 
+                                      initial={{ opacity: 0, x: -5 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: (idx * 0.1) + (mIdx * 0.05) }}
+                                      key={mIdx}
+                                      className="px-4 py-2 bg-indigo-50/50 text-indigo-700 rounded-2xl text-sm font-semibold flex items-center gap-2 border border-indigo-100/50 hover:bg-indigo-100 transition-colors cursor-default"
+                                    >
+                                      <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
+                                      {member}
+                                    </motion.span>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        key="empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center justify-center py-20 text-slate-300"
+                      >
+                        <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-6 border border-slate-100">
+                          <Users className="w-10 h-10 opacity-20" />
+                        </div>
+                        <p className="font-medium">設定人數並點擊開始分組</p>
+                        <p className="text-xs mt-2 opacity-60">系統將會為您自動分配成員</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
             </div>
